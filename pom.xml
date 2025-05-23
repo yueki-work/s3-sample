@@ -14,7 +14,7 @@
         <localstack.version>0.2.25</localstack.version>
     </properties>
     <dependencies>
-        <!-- AWS SDK v1 -->
+        <!-- AWS SDK v2 -->
 <dependency>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>s3</artifactId>
@@ -50,6 +50,7 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    
                 </configuration>
             </plugin>
             <!-- Surefire for JUnit 5 -->
