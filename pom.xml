@@ -5,19 +5,20 @@
     <groupId>com.example</groupId>
     <artifactId>s3-sample</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <junit.version>5.9.3</junit.version>
-        <aws.sdk.version>1.12.700</aws.sdk.version>
+        <properties>
+            <maven.compiler.source>1.8</maven.compiler.source>
+            <maven.compiler.target>1.8</maven.compiler.target>
+            <maven.compiler.release>8</maven.compiler.release>
+            <junit.version>5.9.3</junit.version>
+        <aws.sdk.version>2.20.0</aws.sdk.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <localstack.version>0.2.25</localstack.version>
     </properties>
     <dependencies>
         <!-- AWS SDK v1 -->
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
         <!-- JUnit 5 -->
@@ -59,6 +60,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <forkCount>0</forkCount>
                 </configuration>
             </plugin>
         </plugins>
