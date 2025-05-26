@@ -31,40 +31,41 @@ public class S3Uploader {
         try (FileWriter writer = new FileWriter(dummyFile)) {
             writer.write("This is a dummy file for S3 upload sample.");
         }
-
-        // S3クライアント作成
-        S3Client s3 = S3Client.builder()
+        
+        try (// Using try-with-resources for S3Client (AutoCloseable)
+             S3Client s3 = S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
                 .httpClient(ApacheHttpClient.builder().build())
                 .forcePathStyle(true)
-                .build();
-
-        // バケット作成（存在しない場合）
-        try {
-            s3.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
-        } catch (S3Exception e) {
-            if (e.statusCode() == 404) {
-                s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-                System.out.println("Bucket created: " + bucketName);
-            } else {
-                throw e;
+                .build()) {
+            
+            // バケット作成（存在しない場合）
+            try {
+                s3.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
+            } catch (S3Exception e) {
+                if (e.statusCode() == 404) {
+                    s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+                    System.out.println("Bucket created: " + bucketName);
+                } else {
+                    throw e;
+                }
             }
+    
+            // ファイルアップロード
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build(),
+                    RequestBody.fromFile(dummyFile)
+            );
+            System.out.println("File uploaded: " + key);
+        } finally {
+            // クリーンアップ
+            dummyFile.delete();
         }
-
-        // ファイルアップロード
-        s3.putObject(
-                PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .build(),
-                RequestBody.fromFile(dummyFile)
-        );
-        System.out.println("File uploaded: " + key);
-
-        // クリーンアップ
-        dummyFile.delete();
     }
 }

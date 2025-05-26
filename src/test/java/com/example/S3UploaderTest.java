@@ -46,57 +46,60 @@ public class S3UploaderTest {
 
         // ダミーファイル作成
         File dummyFile = new File("test.txt");
+        File downloaded = File.createTempFile("downloaded-", ".txt");
         String fileContent = "Hello from test!";
+        
+        // First write the content
         try (FileWriter writer = new FileWriter(dummyFile)) {
             writer.write(fileContent);
         }
-
-        // S3クライアント作成
-        S3Client s3 = S3Client.builder()
+        
+        // Then do the S3 operations
+        try (S3Client s3 = S3Client.builder()
                 .endpointOverride(endpoint)
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
                 .httpClient(ApacheHttpClient.builder().build())
                 .forcePathStyle(true)
-                .build();
-
-        // バケット作成
-        s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-
-        // ファイルアップロード
-        s3.putObject(
-                PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .build(),
-                RequestBody.fromFile(dummyFile)
-        );
-
-        // S3からダウンロードして内容検証
-        File downloaded = File.createTempFile("downloaded-", ".txt");
-        
-        ResponseInputStream<GetObjectResponse> objectData = s3.getObject(
-                GetObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .build()
-        );
-        
-        try (InputStream in = objectData;
-             java.io.OutputStream out = Files.newOutputStream(downloaded.toPath())) {
-            byte[] buffer = new byte[8192];
-            int len;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
+                .build()) {
+                     
+            // バケット作成
+            s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+    
+            // ファイルアップロード
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build(),
+                    RequestBody.fromFile(dummyFile)
+            );
+    
+            // S3からダウンロードして内容検証
+            ResponseInputStream<GetObjectResponse> objectData = s3.getObject(
+                    GetObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build()
+            );
+            
+            try (InputStream in = objectData;
+                 java.io.OutputStream out = Files.newOutputStream(downloaded.toPath())) {
+                byte[] buffer = new byte[8192];
+                int len;
+                while ((len = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, len);
+                }
             }
+            
+            String downloadedContent = new String(Files.readAllBytes(downloaded.toPath()), StandardCharsets.UTF_8);
+            assertEquals(fileContent, downloadedContent);
+            
+        } finally {
+            // クリーンアップ
+            dummyFile.delete();
+            downloaded.delete();
         }
-        
-        String downloadedContent = new String(Files.readAllBytes(downloaded.toPath()), StandardCharsets.UTF_8);
-        assertEquals(fileContent, downloadedContent);
-
-        // クリーンアップ
-        dummyFile.delete();
-        downloaded.delete();
     }
 }
