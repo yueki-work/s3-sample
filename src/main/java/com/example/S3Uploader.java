@@ -26,24 +26,50 @@ public class S3Uploader {
             writer.write("This is a dummy file for S3 upload sample.");
         }
 
-        // S3クライアント作成
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
-                .withPathStyleAccessEnabled(true)
-                .build();
+        // S3クライアント作成 - try-with-resources でリソース管理を改善
+        try (AutoCloseableS3Client s3Client = new AutoCloseableS3Client(
+                endpoint, region, accessKey, secretKey)) {
+            
+            AmazonS3 s3 = s3Client.getS3Client();
+            
+            // バケット作成（存在しない場合）
+            if (!s3.doesBucketExistV2(bucketName)) {
+                s3.createBucket(bucketName);
+                System.out.println("Bucket created: " + bucketName);
+            }
 
-        // バケット作成（存在しない場合）
-        if (!s3.doesBucketExistV2(bucketName)) {
-            s3.createBucket(bucketName);
-            System.out.println("Bucket created: " + bucketName);
+            // ファイルアップロード
+            s3.putObject(bucketName, key, dummyFile);
+            System.out.println("File uploaded: " + key);
+        } finally {
+            // クリーンアップ
+            if (dummyFile != null && dummyFile.exists()) {
+                dummyFile.delete();
+            }
         }
-
-        // ファイルアップロード
-        s3.putObject(bucketName, key, dummyFile);
-        System.out.println("File uploaded: " + key);
-
-        // クリーンアップ
-        dummyFile.delete();
+    }
+    
+    // S3クライアントのためのAutoCloseable実装
+    private static class AutoCloseableS3Client implements AutoCloseable {
+        private final AmazonS3 s3Client;
+        
+        public AutoCloseableS3Client(String endpoint, String region, String accessKey, String secretKey) {
+            this.s3Client = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
+                    .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+                    .withPathStyleAccessEnabled(true)
+                    .build();
+        }
+        
+        public AmazonS3 getS3Client() {
+            return s3Client;
+        }
+        
+        @Override
+        public void close() {
+            if (s3Client != null) {
+                s3Client.shutdown();
+            }
+        }
     }
 }
