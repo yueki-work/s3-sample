@@ -9,16 +9,32 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.version>5.9.3</junit.version>
-        <aws.sdk.version>1.12.700</aws.sdk.version>
+        <aws.sdk.version>2.20.0</aws.sdk.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <localstack.version>0.2.25</localstack.version>
     </properties>
     <dependencies>
-        <!-- AWS SDK v1 -->
+        <!-- AWS SDK v2 -->
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
             <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.13</version>
         </dependency>
         <!-- JUnit 5 -->
         <dependency>
