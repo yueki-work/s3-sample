@@ -9,7 +9,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.version>5.9.3</junit.version>
-        <aws.sdk.version>1.12.700</aws.sdk.version>
+        <aws.sdk.version>1.12.787</aws.sdk.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <localstack.version>0.2.25</localstack.version>
     </properties>
