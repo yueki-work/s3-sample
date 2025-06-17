@@ -8,9 +8,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -22,7 +21,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,20 +72,19 @@ public class S3UploaderTest {
                             .build(),
                     RequestBody.fromFile(dummyFile));
 
-            // S3からダウンロードして内容検証
-            File downloaded = File.createTempFile("downloaded-", ".txt");
-            s3.getObject(
+            // S3からダウンロードして内容検証 - Using direct bytes retrieval instead of file download
+            ResponseBytes<GetObjectResponse> objectBytes = s3.getObjectAsBytes(
                     GetObjectRequest.builder()
                             .bucket(bucketName)
                             .key(key)
-                            .build(),
-                    ResponseTransformer.toFile(downloaded));
-
-            String downloadedContent = new String(Files.readAllBytes(downloaded.toPath()), StandardCharsets.UTF_8);
+                            .build());
+                            
+            // Convert the downloaded content to a String
+            String downloadedContent = objectBytes.asUtf8String();
+            
+            // Compare the downloaded content with original content
             assertEquals(fileContent, downloadedContent);
 
-            // クリーンアップ
-            downloaded.delete();
         } finally {
             // リソース解放
             s3.close();
