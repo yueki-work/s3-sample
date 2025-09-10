@@ -1,6 +1,5 @@
 package com.example;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -25,12 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 public class S3UploaderTest {
-
-    // Initialize TestContainers configuration
-    @BeforeAll
-    static void initializeConfig() {
-        TestContainersConfig.init();
-    }
 
     @Container
     public static LocalStackContainer localstack = new LocalStackContainer(
